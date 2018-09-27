@@ -56,6 +56,7 @@ add_action(
 	}
 );
 
+// Remove admin bar on the frontend.
 add_filter( 'show_admin_bar', '__return_false' );
 
 if ( ! function_exists( 'register_location_metabox' ) ) {
@@ -102,7 +103,7 @@ add_action(
  *
  * @return void
  */
-function generate_article_list() {
+function generate_homepage_article_list() {
 
 	$post_arg = [
 		'post_type'      => 'post',
@@ -128,14 +129,21 @@ function generate_article_list() {
 	return $list;
 }
 
-/**
- * Prints list required for angular app
- *
- * @return void
- */
-function js_script_print_list() {
-	$json_list = json_encode( generate_article_list(), JSON_UNESCAPED_SLASHES );
-	echo "<script> var list={$json_list}</script>";
+if ( ! function_exists( 'homepage_js_script_print_list' ) ) {
+
+	add_action( 'wp_footer', 'homepage_js_script_print_list' );
+
+	/**
+	 * Prints list required for angular app
+	 *
+	 * @return void
+	 */
+	function homepage_js_script_print_list() {
+		if ( ! is_home() ) {
+			return;
+		}
+		wp_localize_script( 'scroll-js', 'list', generate_homepage_article_list() );
+	}
 }
 
 

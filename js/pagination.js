@@ -19,31 +19,48 @@ function getScrollTop() {
 var wp_image_index = 0;
 function getArticleImage() {
   var image = new Image();
-  image.className = 'article-list__item__image article-list__item__image--loading';
+  data = {};
 
   if (typeof wp_images === 'undefined' || wp_images.length < 1) {
     var hash = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
     image.src = 'http://api.adorable.io/avatars/250/' + hash;
   } else {
     wp_image_index = (wp_image_index >= wp_images.length) ? 0 : wp_image_index;
-    image.src = wp_images[wp_image_index]
+    data.image_el = image
+    data.image_el.src = wp_images[wp_image_index].image
+    data.image = wp_images[wp_image_index].image
+    data.link = wp_images[wp_image_index].link
+    data.title = wp_images[wp_image_index].title
     wp_image_index++;
   }
 
-  image.onload = function () {
-    image.classList.remove('article-list__item__image--loading');
-  };
+  return data;
+}
 
-  return image;
+function createElementFromHTML(htmlString) {
+  var div = document.createElement('div');
+  div.innerHTML = htmlString.trim();
+
+  // Change this to div.childNodes to support multiple top-level nodes
+  return div.firstChild;
 }
 
 function getArticle() {
-  var articleImage = getArticleImage();
+  var data = getArticleImage();
   var article = document.createElement('article');
-  article.className = 'article-list__item';
-  article.appendChild(articleImage);
 
-  return article;
+
+  article.appendChild(data.image_el);
+
+  block = createElementFromHTML(`<a href='${data.link}'>${article.innerHTML}
+  <span>${data.title}</span></a>`);
+  block.className = 'article-list__item article-list__item__image';
+
+  block.onload = function () {
+    block.classList.remove('article-list__item__image--loading');
+  };
+
+  return block
 }
 
 function getArticlePage(page) {

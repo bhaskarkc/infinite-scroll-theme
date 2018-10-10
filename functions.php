@@ -40,14 +40,14 @@ add_action(
 		wp_enqueue_style( 'google-fonts', 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700|Playfair+Display:400,400italic,700,900' );
 		wp_enqueue_style( 'normalize-css', 'https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css' );
 
-		if ( is_home() ) {
+		if ( is_page_template( 'template-angular' ) ) {
 			wp_enqueue_style( 'scroll-style', get_stylesheet_directory_uri() . '/css/scroll.css' );
 			wp_enqueue_script( 'angular-js', 'http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular.min.js', [], '1.3.14', true );
 			wp_enqueue_script( 'angular-animate-js', 'http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular-animate.min.js', [ 'angular-js' ], '1.3.14', true );
 			wp_enqueue_script( 'scroll-js', get_stylesheet_directory_uri() . '/js/scroll.js', [ 'angular-js', 'angular-animate-js' ], null, true );
 		}
 
-		if ( is_post_type_archive( 'attachment' ) ) {
+		if ( is_home() ) {
 			wp_enqueue_style( 'pagination-style', get_stylesheet_directory_uri() . '/css/pagination.css' );
 			wp_enqueue_script( 'pagination-js', get_stylesheet_directory_uri() . '/js/pagination.js', [], null, true );
 
@@ -191,7 +191,7 @@ if ( ! function_exists( 'alter_attachment_archive_query' ) ) {
 
 if ( ! function_exists( 'prepare_media_image_source_list' ) ) {
 
-	add_action( 'wp_footer', 'prepare_media_image_source_list' );
+	add_action( 'wp_footer', 'get_product_list' );
 	/**
 	 * Adds image src list JS var on attachment archive page.
 	 *
@@ -213,4 +213,23 @@ if ( ! function_exists( 'prepare_media_image_source_list' ) ) {
 			wp_localize_script( 'pagination-js', 'wp_images', $images );
 		}
 	}
+}
+
+
+function get_product_list() {
+	$args = [
+		'post_type'      => 'product',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	];
+
+	$data = [];
+	foreach ( get_posts( $args ) as $index => $post_id ) {
+		$data[ $index ]['image'] = ( get_the_post_thumbnail_url( $post_id, 'thumbnail' ) ) ? get_the_post_thumbnail_url( $post_id, 'thumbnail' ) : 'http://api.adorable.io/avatars/250/' . md5( rand() );
+		$data[ $index ]['link']  = get_permalink( $post_id );
+		$data[ $index ]['title'] = get_the_title( $post_id );
+	}
+	wp_localize_script( 'pagination-js', 'wp_images', $data );
+
 }
